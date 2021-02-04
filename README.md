@@ -3,6 +3,9 @@
 #### To run the playbook 
 
 `ansible-playbook --fork=1 deploy_galera_cluster.yml -i inventory.yml` for deploying galera cluster.
+
+
+
 `ansible-playbook --fork=1 deploy_haproxy_balancer4cluster.yml -i inventory.yml` for adding haproxy balancer.
 
 
