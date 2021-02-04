@@ -2,8 +2,8 @@
   become: true
   become_method: sudo
   vars:
-    mysql_cluster_name: demo_mysql_cluster
-    mysql_root_password: your_mysql_root_password
+    galera_cluster_name: demo_mariadb_cluster
+    galera_root_password: your_mariadb_root_password
 
   tasks:
 # install galera cluster package
@@ -13,16 +13,16 @@
       state: installed
     with items:
       - mariadb-server-galera
-    when: "'galera_nodes' in group_names"
+    when: "'haproxy_servers' in group_names"
 
 # if Firewalld is running, allow ports
 
-  - name: add active ports
+  - name: add service to firewalld
     firewalld:
-      port: 3306/tcp,4444/tcp,4567-4568/tcp
-      permanent: true
+      service: mysql
+      permanent: yes
       state: enabled
-    when: "'galera_nodes' in group_names"
+    when: "'haproxy_servers' in group_names"
 
 # reload Firewalld
 
@@ -30,12 +30,7 @@
     ansible.builtin.systemd:
       name: firewalld
       state: reloaded
-    when: "'galera_nodes' in group_names"
+    when: "'haproxy_servers' in group_names"
 
 # replace config file for deploying galera cluster
 
-  - name: Create zabbix .conf file
-    template:
-      src: galera_cluster_config.j2
-      dest: /etc/zabbix/zabbix_agentd.conf
-    when: "'zabbix_agent' in group_names"
