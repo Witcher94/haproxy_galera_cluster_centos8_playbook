@@ -1,0 +1,53 @@
+- hosts: all
+  become: true
+  become_method: sudo
+  vars:
+    galera_cluster_name: demo_mariadb_cluster
+    galera_root_password: your_mariadb_root_password
+
+  tasks:
+# install haproxy package
+  - name: installing haproxy
+    dnf:
+      name: '{{item}}'
+      state: installed
+    with items:
+      - haproxy
+    when: "'haproxy_servers' in group_names"
+
+# change boolean settings for SELinux
+
+  - name: Set haproxy_connect_any flag on and keep it persistent across reboots
+    ansible.posix.seboolean:
+      name: haproxy_connect_any
+      state: yes
+      persistent: yes
+
+
+#Create config file for haproxy
+
+  - name: Create zabbix .cfg file
+    template:
+      src: haproxy_balancer_config.j2
+      dest: /etc/haproxy/haproxy.cfg
+      force: yes
+    when: "'haproxy_servers' in group_names"
+
+# if Firewalld is running, allow ports
+
+  - name: add active ports
+    firewalld:
+      service: mysql
+      permanent: yes
+      state: enabled
+    when: "'haproxy_servers' in group_names"
+
+#reload service haproxy for the end of installation
+
+  - name: Reload service haproxy
+        ansible.builtin.systemd:
+          name: haproxy
+          state: reloaded
+        when: "'haproxy_servers' in group_names"
+
+
