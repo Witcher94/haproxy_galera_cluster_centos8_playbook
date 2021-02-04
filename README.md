@@ -15,4 +15,4 @@ add hosts to `inventory.yml`
 Note: Do not modify the host group names [galera_nodes] and [haproxy_servers] when adding hosts to `inventory.yml` file since it has dependencies inside the playbook. 
 
 
-P.S. User parameter fork for starting cluster in correct order 
+P.S. Use parameter fork for starting cluster in correct order 
