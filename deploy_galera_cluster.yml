@@ -34,8 +34,17 @@
 
 # replace config file for deploying galera cluster
 
-  - name: Create zabbix .conf file
+  - name: Create galera .cnf file
     template:
       src: galera_cluster_config.j2
-      dest: /etc/zabbix/zabbix_agentd.conf
-    when: "'zabbix_agent' in group_names"
+      dest: /etc/my.cnf.d/galera.cnf
+    when: "'galera_nodes' in group_names"
+
+# start galera cluster nodes for cluster is up!
+
+  - name: enable service mariadb
+      ansible.builtin.systemd:
+        name: mariadb.service
+        state: started
+        enabled: yes
+
