@@ -2,16 +2,17 @@
   become: true
   become_method: sudo
   vars:
-    mysql_cluster_name: demo_mysql_cluster
-    mysql_root_password: your_mysql_root_password
+    galera_cluster_name: galera_cluster
+    galera_root_password: 1
 
   tasks:
+
 # install galera cluster package
   - name: installing mariadb-server-galera
     dnf:
       name: '{{item}}'
       state: installed
-    with items:
+    with_items:
       - mariadb-server-galera
     when: "'galera_nodes' in group_names"
 
@@ -19,9 +20,13 @@
 
   - name: add active ports
     firewalld:
-      port: 3306/tcp,4444/tcp,4567-4568/tcp
+      port: '{{item}}'
       permanent: true
       state: enabled
+    with_items:
+      - 3306/tcp
+      - 4444/tcp
+      - 4567-4568/tcp
     when: "'galera_nodes' in group_names"
 
 # reload Firewalld
@@ -40,11 +45,16 @@
       dest: /etc/my.cnf.d/galera.cnf
     when: "'galera_nodes' in group_names"
 
+#start galera cluster service
+  - name: start cluster
+    command: galera_new_cluster
+    when: inventory_hostname == groups['galera_nodes'][0]
+
 # start galera cluster nodes for cluster is up!
 
   - name: enable service mariadb
-      ansible.builtin.systemd:
-        name: mariadb.service
-        state: started
-        enabled: yes
-
+    ansible.builtin.systemd:
+      name: mariadb.service
+      state: started
+      enabled: yes
+    when: "'galera_nodes' in group_names"
